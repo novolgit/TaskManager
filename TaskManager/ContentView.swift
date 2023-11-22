@@ -9,58 +9,43 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @State var notifications: [NotificationValue] = []
+    
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+//        TabView {
+            CalendarTabView()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .top) {
+                GeometryReader {proxy in
+                    let size = proxy.size
+                    
+                    ForEach(notifications) { notification in
+                        NotificationPreview(size: size, value: notification, notifications: $notifications)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     }
+                
                 }
-                .onDelete(perform: deleteItems)
+                .ignoresSafeArea()
             }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("NOTIFY"))) { output in
+                if let content = output.userInfo?["content"] as? UNNotificationContent {
+                    let newNotification = NotificationValue(content: content)
+                    notifications.append(newNotification)
                 }
             }
-        } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+//                .tabItem {
+//                    Label("Calendar", systemImage: "square.and.pencil")
+//                }
+//            
+//            Text("nothing")
+//                .tabItem {
+//                    Label("Calendar", systemImage: "square")
+//                }
+//        }
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: TaskModel.self, inMemory: true)
 }
