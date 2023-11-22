@@ -40,6 +40,8 @@ struct TaskFormView: View {
         task == nil ? "Add Task" : "Edit Task"
     }
     
+    @Binding var editMode: Bool
+    
     @FocusState private var focusedField: Field?
     
     @Environment(\.modelContext) private var modelContext
@@ -232,7 +234,7 @@ struct TaskFormView: View {
             }
             .modifier(ActivityIndicatorModifier(isLoading: isLoading))
             .navigationBarItems(
-                leading: Button(role: .cancel, action: { dismiss()}, label: {
+                leading: Button(role: .cancel, action: { task == nil ? editMode.toggle() : dismiss()}, label: {
                     Text("Cancel")
                         .multilineTextAlignment(.center)
                 }), 
@@ -282,7 +284,7 @@ struct TaskFormView: View {
         debugPrint("creating a task..")
         isLoading = true
         
-        if let task {
+        if task != nil {
             editTask()
         } else {
             createTask()
@@ -290,7 +292,11 @@ struct TaskFormView: View {
         
         isLoading = false
         
-        dismiss()
+        if task == nil {
+            dismiss()
+        } else {
+            editMode.toggle()
+        }
     }
     
     private func editTask() {
@@ -556,7 +562,7 @@ struct TaskFormView: View {
 }
 
 #Preview {
-    TaskFormView(task: TaskModel.samples[0])
+    TaskFormView(task: TaskModel.samples[0], editMode: .constant(false))
 }
 
 struct CustomDatePicker: View {

@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct CalendarTabView: View {
+    @Environment(\.modelContext) private var modelContext
+    
     @Query private var boards: [Board]
     
     @State private var showingAddForm: Bool = false
@@ -54,7 +56,7 @@ struct CalendarTabView: View {
             }
             //            .coordinateSpace(name: "SCROLL")
 //            .navigationTitle(getMonth(date: selectedDate)[1])
-            .navigationTitle(getCurrentBoard().name)
+            .navigationTitle(getCurrentBoard()?.name ?? "Board")
             .navigationBarTitleDisplayMode(.inline)
             //            .navigationTitle("Calendar")
             .navigationBarItems(trailing:
@@ -75,16 +77,16 @@ struct CalendarTabView: View {
                         .labelStyle(.iconOnly)
                         .foregroundColor(Color(.link))
                 }.sheet(isPresented: $showingAddForm) {
-                    TaskFormView(task: nil)
+                    TaskFormView(task: nil, editMode: .constant(false))
                 }
                 
                 ShareLink(
-                    item: "getCurrentBoard(",
+                    item: "getCurrentBoard",
                     subject: Text("Cool Photo"),
                     message: Text("Check it out!"),
                     preview: SharePreview(
-                        getCurrentBoard().name))
-                
+                        getCurrentBoard()?.name ?? "no boards")
+                )
             }
                                 
             )
@@ -94,6 +96,10 @@ struct CalendarTabView: View {
 //            Text("Select a task")
 //        }
         .statusBar(hidden: fullScreen)
+        
+        .onAppear {
+            DataGeneration.generateAllData(modelContext: modelContext)
+        }
         //            .toolbar {
         //                ToolbarItem(placement: .primaryAction) {
         //                    Button {
@@ -111,10 +117,14 @@ struct CalendarTabView: View {
         //            .navigationBarTitleDisplayMode(.inline)
     }
     
-    func getCurrentBoard() -> Board {
-        return boards.first(where: {board in
-            return board.id == currentBoard
-        }) ?? boards.first!
+    func getCurrentBoard() -> Board? {
+        if (boards != nil && boards.count > 0) {
+            return boards.first(where: {board in
+                return board.id == currentBoard
+            }) ?? boards.first!
+        } else {
+            return nil
+        }
     }
     
     func addTap() -> Void {

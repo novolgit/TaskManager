@@ -11,10 +11,15 @@ import SwiftData
 // MARK: - SwiftData Containers
 var sharedModelContainer: ModelContainer = {
     let fullScheme = Schema([
+        DataGeneration.self,
+        
         GroupModel.self,
         TaskModel.self,
 
         Board.self,
+        
+        //
+//        Account.self
     ])
     
     // cloudKitContainerIdentifier: "iCloud.com.novol.TaskManager"

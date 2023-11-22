@@ -6,3 +6,11 @@
 //
 
 import Foundation
+
+extension TimeInterval {
+    public func getTimeRange(_ start: Date, _ end: Date) -> TimeInterval {
+        let minutes = end.minutes(from: start)
+        
+        return TimeInterval(minutes)
+    }
+}
